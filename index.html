@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إرسال رسالة لبوت تيليجرام</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        /* الخلفية والديزاين العام (أسود) */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121212; /* خلفية داكنة */
+            color: #E0E0E0; /* لون النص الفاتح العام */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            direction: rtl;
+        }
+        .container {
+            background-color: #1E1E1E; /* خلفية الكونتينر أغمق قليلاً */
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #333;
+        }
+        h1 {
+            color: #4CAF50; /* لون العنوان (أخضر خفيف ممكن يكون جذاب) */
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2196F3; /* لون التسمية (أزرق) */
+        }
+        textarea {
+            width: 95%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            box-sizing: border-box;
+            resize: vertical;
+            background-color: #2D2D2D; /* خلفية حقل الإدخال */
+            color: #E0E0E0; /* لون النص داخل الحقل */
+        }
+        button {
+            width: 100%;
+            background-color: #2196F3; /* زر أزرق */
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1976D2;
+        }
+        /* رسائل الحالة */
+        #statusMessage {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #4CAF501A; /* أخضر فاتح شفاف للخلفية */
+            color: #4CAF50; /* أخضر للنص */
+        }
+        .error {
+            background-color: #F443361A; /* أحمر شفاف للخلفية */
+            color: #F44336; /* أحمر للنص */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📨 إرسال رسالة لبوت تيليجرام</h1>
+
+        <label for="messageText">الرسالة:</label>
+        <textarea id="messageText" rows="4" placeholder="اكتب رسالتك هنا..." required></textarea>
+
+        <button onclick="sendMessage()">إرسال الرسالة</button>
+
+        <div id="statusMessage"></div>
+    </div>
+
+    <script>
+        // توكن البوت الثابت
+        const BOT_TOKEN = '8045920235:AAEXpbGW6nI2mw75fMQKobvN5cfxoIbN5kM';
+        
+        // **Chat ID الثابت والمحفوظ** (تم نقله من حقل الإدخال)
+        const CHAT_ID = '6750599260';
+
+        // دالة الإرسال
+        async function sendMessage() {
+            // الآن لا نحصل على Chat ID من الحقل، بل نستخدم القيمة الثابتة CHAT_ID
+            const chatId = CHAT_ID;
+            const messageText = document.getElementById('messageText').value.trim();
+            const statusMessage = document.getElementById('statusMessage');
+
+            // إخفاء رسالة الحالة القديمة
+            statusMessage.style.display = 'none';
+
+            // التحقق من أن حقل الرسالة مملوء
+            if (!messageText) {
+                displayStatus('من فضلك املأ نص الرسالة.', 'error');
+                return;
+            }
+
+            // بناء رابط الـAPI
+            const apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+
+            try {
+                // إرسال طلب الـPOST باستخدام Axios
+                const response = await axios.post(apiUrl, {
+                    chat_id: chatId,
+                    text: messageText
+                });
+
+                if (response.data.ok) {
+                    displayStatus('✅ تم إرسال الرسالة بنجاح!', 'success');
+                    // مسح حقل الرسالة بعد الإرسال الناجح
+                    document.getElementById('messageText').value = '';
+                } else {
+                    // رسالة خطأ من API تيليجرام
+                    displayStatus(`❌ فشل الإرسال. خطأ: ${response.data.description || 'غير معروف'}`, 'error');
+                }
+            } catch (error) {
+                // خطأ في الاتصال أو السيرفر
+                console.error('Error sending message:', error);
+                const errorMessage = error.response ? error.response.data.description : 'تأكد من Chat ID وصحة التوكن.';
+                displayStatus(`❌ حدث خطأ في الاتصال: ${errorMessage}`, 'error');
+            }
+        }
+
+        // دالة لعرض رسائل الحالة
+        function displayStatus(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = '';
+            statusMessage.classList.add(type);
+            statusMessage.style.display = 'block';
+        }
+
+    </script>
+</body>
+</html>
